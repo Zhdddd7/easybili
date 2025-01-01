@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.web.mappers.UserInfoMapper">
+
+    <!-- 查询用户 -->
+    <select id="selectById" parameterType="string" resultType="com.easybili.web.po.UserInfo">
+        SELECT * FROM user_info WHERE user_id = #{id}
+    </select>
+
+    <select id="selectByUserName" parameterType="string" resultType="com.easybili.web.po.UserInfo">
+        SELECT * FROM user_info WHERE user_name = #{userName}
+    </select>
+
+    <select id="selectByEmail" parameterType="string" resultType="com.easybili.web.po.UserInfo">
+        SELECT * FROM user_info WHERE email = #{email}
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.easybili.web.po.UserInfo">
+        INSERT INTO user_info (user_id, user_name, email, password, sex, birthday, school, person_introduction, join_time, last_login_time, last_login_ip, status, notice_info, total_coin_count, current_coin_count, theme)
+        VALUES (#{userId}, #{userName}, #{email}, #{password}, #{sex}, #{birthday}, #{school}, #{personIntroduction}, #{joinTime}, #{lastLoginTime}, #{lastLoginIp}, #{status}, #{noticeInfo}, #{totalCoinCount}, #{currentCoinCount}, #{theme})
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update" parameterType="com.easybili.web.po.UserInfo">
+        UPDATE user_info
+        <set>
+            <if test="userName != null">user_name = #{userName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="school != null">school = #{school},</if>
+            <if test="personIntroduction != null">person_introduction = #{personIntroduction},</if>
+            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+            <if test="lastLoginIp != null">last_login_ip = #{lastLoginIp},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="noticeInfo != null">notice_info = #{noticeInfo},</if>
+            <if test="totalCoinCount != null">total_coin_count = #{totalCoinCount},</if>
+            <if test="currentCoinCount != null">current_coin_count = #{currentCoinCount},</if>
+            <if test="theme != null">theme = #{theme},</if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 删除用户 -->
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM user_info WHERE user_id = #{id}
+    </delete>
+</mapper>

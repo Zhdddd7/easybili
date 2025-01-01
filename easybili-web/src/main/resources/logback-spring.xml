@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="10 minutes" debug="true">
+    <appender name="stdot" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>utf-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss,GMT+8} [%p][%c][%M][%L]-> %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProperty scope="context" name="log.path" source="project.folder" defaultValue="C:/Workspace/easybili"/>
+    <springProperty scope="context" name="log.root.level" source="log.root.level" defaultValue="debug"/>
+    <springProperty scope="context" name="appname" source="spring.application.name" defaultValue="easybili"/>
+
+    <property name="LOG_FOLDER" value="logs"/>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/${LOG_FOLDER}/${appname}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${log.path}/${LOG_FOLDER}/${appname}.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>utf-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss,GMT+8} [%p][%c][%M][%L]-> %m%n</pattern>
+        </encoder>
+        <append>false</append>
+        <prudent>false</prudent>
+    </appender>
+
+    <logger name="org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener" level="error"/>
+    <logger name="org.redisson.connection.DNSMonitor" level="error"/>
+    <logger name="com.zaxxer.hikari" level="info"/>
+    <logger name="io.lettuce.core" level="info"/>
+    <logger name="org.springframework.data.redis" level="info"/>
+    <root level="${log.root.level}">
+        <appender-ref ref="stdot"/>
+        <appender-ref ref="file"/>
+    </root>
+
+</configuration>
