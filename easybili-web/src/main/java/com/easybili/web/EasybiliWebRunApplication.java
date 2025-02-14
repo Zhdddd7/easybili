@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 
 @SpringBootApplication(scanBasePackages = {"com.easybili"} )
+@MapperScan("com.easybili")
 public class EasybiliWebRunApplication {
     public static void main(String[] args){
-
         SpringApplication.run(EasybiliWebRunApplication.class, args);
     }
 

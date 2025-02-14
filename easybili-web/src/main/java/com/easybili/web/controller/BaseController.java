@@ -1,10 +1,13 @@
 package com.easybili.web.controller;
 
 import com.easybili.constants.Constants;
+import com.easybili.entities.component.RedisComponent;
+import com.easybili.entities.dto.TokenUserInfoDto;
+import com.easybili.entities.vo.ResponseVO;
 import com.easybili.redis.RedisUtils;
-import com.easybili.web.component.RedisComponent;
-import com.easybili.web.dto.TokenUserInfoDto;
-import com.easybili.web.vo.ResponseVO;
+
+
+
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -96,6 +99,44 @@ public class BaseController<T> {
     protected TokenUserInfoDto getTokenUserInfoDto(){
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String token = request.getHeader(Constants.TOKEN_HEAD);
-
+        return redisComponent.getTokenInfo(token);
     }
+
+    protected TokenUserInfoDto getTokenInfoFromCookie(){
+        HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+        String token = getTokenFromCookie(request);
+        if(token == null){
+            return null;
+        }
+        return redisComponent.getTokenInfo(token);
+    }
+
+    private String getTokenFromCookie(HttpServletRequest request){
+        Cookie[] cookies =  request.getCookies();
+        if(cookies == null){
+            return null;
+        }
+        for (Cookie cookie:cookies){
+            if(cookie.getName().equalsIgnoreCase(Constants.TOKEN_HEAD)){
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    protected void cleanCookie(HttpServletResponse response) {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(Constants.TOKEN_HEAD)) {
+                redisComponent.cleanToken(cookie.getValue());
+                cookie.setMaxAge(0);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                break;
+            }
+        }
+    }
+
+
 }

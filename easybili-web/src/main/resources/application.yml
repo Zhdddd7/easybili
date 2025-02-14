@@ -37,9 +37,10 @@ spring:
     timeout: 2000
 #mybatis 大小写转驼峰
 mybatis:
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath:mappers/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 project:
   folder: C:/Workspace/easybili/

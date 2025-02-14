@@ -1,4 +1,4 @@
-package com.easybili.annotations;
+package com.easybili.web.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

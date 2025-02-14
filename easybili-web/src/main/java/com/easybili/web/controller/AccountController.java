@@ -1,17 +1,24 @@
 package com.easybili.web.controller;
 
-import com.easybili.web.component.RedisComponent;
+
 import com.easybili.constants.Constants;
-import com.easybili.web.dto.TokenUserInfoDto;
-import com.easybili.web.exception.BusinessException;
-import com.easybili.web.service.UserInfoServiceImpl;
-import com.easybili.web.vo.ResponseVO;
+import com.easybili.entities.component.RedisComponent;
+
+import com.easybili.entities.dto.TokenUserInfoDto;
+
+import com.easybili.entities.dto.UserCountInfoDto;
+import com.easybili.entities.exception.BusinessException;
+import com.easybili.entities.vo.ResponseVO;
+import com.easybili.service.UserInfoServiceImpl;
+import com.easybili.utils.StringTools;
 import com.wf.captcha.ArithmeticCaptcha;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.*;
@@ -19,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/api/account")
 @Validated
 public class AccountController extends BaseController<String>{
     @Resource
@@ -58,10 +65,10 @@ public class AccountController extends BaseController<String>{
         return ResponseVO.getSuccessResponseVO(result);
     }
 
-    @RequestMapping("register")
+    @RequestMapping("/register")
     public ResponseVO<Boolean> register(@NotEmpty @Email @Size(max = 100) String email,
-                                        @NotEmpty @Size(max = 30) String userName,
-                                        @NotEmpty @Pattern(regexp = Constants.REGEX_PASSWORD) String passWord,
+                                        @NotEmpty @Size(max = 30) String nickName,
+                                        @NotEmpty @Pattern(regexp = Constants.REGEX_PASSWORD) String registerPassword,
                                         @NotEmpty String checkCodeKey,
                                         @NotEmpty String checkCode
     ) {
@@ -70,7 +77,7 @@ public class AccountController extends BaseController<String>{
 //                String notice = "the checkcode is not right, current checkcode is " + redisComponent.getCheckCode(checkCodeKey) + ", but you are providing " + checkCode;
                 throw new BusinessException("the checkcode is not correct");
             }
-            userInfoService.register(email, userName, passWord);
+            userInfoService.register(email, nickName, registerPassword);
             return ResponseVO.getSuccessResponseVO();
         } finally {
             redisComponent.cleanCheckCode(checkCodeKey);
@@ -78,32 +85,45 @@ public class AccountController extends BaseController<String>{
 
     }
 
-    @RequestMapping("login")
-    public ResponseVO<TokenUserInfoDto> login(HttpServletResponse response,
-                                    @NotEmpty @Email String email,
-                                    @NotEmpty String passWord,
-                                    @NotEmpty String checkCodeKey,
-                                    @NotEmpty String checkCode){
+    // here we use password instead of passWord, since the frontend is using password
+    @RequestMapping("/login")
+    public ResponseVO<TokenUserInfoDto> login(HttpServletRequest request, HttpServletResponse response,
+                                              @NotEmpty @Email String email,
+                                              @NotEmpty String password,
+                                              @NotEmpty String checkCodeKey,
+                                              @NotEmpty String checkCode){
         try {
             if (!checkCode.equalsIgnoreCase(redisComponent.getCheckCode(checkCodeKey))) {
 //                String notice = "the checkcode is not right, current checkcode is " + redisComponent.getCheckCode(checkCodeKey) + ", but you are providing " + checkCode;
                 throw new BusinessException("the checkcode is not correct");
             }
             String ip = getIpAddr();
-            TokenUserInfoDto tokenUserInfoDto = userInfoService.login(email, passWord, ip);
+            TokenUserInfoDto tokenUserInfoDto = userInfoService.login(email, password, ip);
             saveToken2Cookie(response, tokenUserInfoDto.getToken());
-            // TODO set fanscount, coins, focuscount
 
             return ResponseVO.getSuccessResponseVO(tokenUserInfoDto);
         } finally {
             redisComponent.cleanCheckCode(checkCodeKey);
+            Cookie[] cookies = request.getCookies();
+            String token = null;
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(Constants.TOKEN_HEAD)) {
+                    token = cookie.getValue();
+                }
+            }
+            if (!StringTools.isEmpty(token)) {
+                redisComponent.cleanToken(token);
+            }
+
         }
 
     }
 
-    @RequestMapping("autologin")
+    @RequestMapping("/autoLogin")
     public ResponseVO<TokenUserInfoDto> autoLogin(HttpServletResponse response){
         TokenUserInfoDto tokenUserInfoDto = getTokenUserInfoDto();
+        System.out.println("a simple hint");
+        System.out.println(tokenUserInfoDto);
         if(tokenUserInfoDto == null){
             return ResponseVO.getSuccessResponseVO();
         }
@@ -111,12 +131,22 @@ public class AccountController extends BaseController<String>{
             redisComponent.saveTokenInfo(tokenUserInfoDto);
             saveToken2Cookie(response, tokenUserInfoDto.getToken());
         }
-        // TODO set fanscount, coins, focuscount
         return ResponseVO.getSuccessResponseVO(tokenUserInfoDto);
     }
 
-//    @RequestMapping("logout")
-    // when logout event triggered, clean the cookie
+    @RequestMapping("logout")
+    public ResponseVO<Object> logout(HttpServletResponse response){
+        cleanCookie(response);
+        return ResponseVO.getSuccessResponseVO();
+    }
+
+    @RequestMapping("/getUserCountInfo")
+    public ResponseVO<Object> getUserCountInfo(){
+        TokenUserInfoDto tokenUserInfoDto = getTokenInfoFromCookie();
+        UserCountInfoDto userCountInfoDto = userInfoService.getUserCountInfo(tokenUserInfoDto.getUserId());
+        return ResponseVO.getSuccessResponseVO(userCountInfoDto);
+    }
+
 
 
 
