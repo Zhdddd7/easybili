@@ -36,11 +36,15 @@ spring:
     timeout: 2000
 #mybatis 大小写转驼峰
 mybatis:
+  mapper-locations: classpath:mappers/*.xml
   configuration:
     map-underscore-to-camel-case: true
 
 project:
-  folder: C:/Workspace/easybili
+  folder: C:/Workspace/easybili/
 log:
   root:
     level: debug
+admin:
+  account: admin
+  password: admin123

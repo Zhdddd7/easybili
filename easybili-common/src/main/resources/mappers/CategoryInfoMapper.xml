@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mapper.CategoryInfoMapper">
+
+    <!-- Insert category -->
+    <insert id="insertCategory" parameterType="com.example.entity.CategoryInfo">
+        INSERT INTO category_info
+        (category_code, category_name, p_category_id, icon, background, sort)
+        VALUES
+        (#{categoryCode}, #{categoryName}, #{pCategoryId}, #{icon}, #{background}, #{sort})
+    </insert>
+
+    <!-- Update category -->
+    <update id="updateCategory" parameterType="com.example.entity.CategoryInfo">
+        UPDATE category_info
+        SET category_code = #{categoryCode},
+        category_name = #{categoryName},
+        p_category_id = #{pCategoryId},
+        icon = #{icon},
+        background = #{background},
+        sort = #{sort}
+        WHERE category_id = #{categoryId}
+    </update>
+
+    <!-- Delete category by ID -->
+    <delete id="deleteCategoryById" parameterType="int">
+        DELETE FROM category_info
+        WHERE category_id = #{categoryId}
+    </delete>
+
+    <!-- Select category by ID -->
+    <select id="selectCategoryById" parameterType="int" resultType="com.example.entity.CategoryInfo">
+        SELECT * FROM category_info
+        WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- Query categories with conditions -->
+    <select id="queryCategories" parameterType="com.example.query.CategoryInfoQuery" resultType="com.example.entity.CategoryInfo">
+        SELECT * FROM category_info
+        WHERE 1=1
+        <if test="categoryCode != null and categoryCode != ''">
+            AND category_code = #{categoryCode}
+        </if>
+        <if test="categoryName != null and categoryName != ''">
+            AND category_name LIKE CONCAT('%', #{categoryName}, '%')
+        </if>
+        ORDER BY sort ASC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+</mapper>
