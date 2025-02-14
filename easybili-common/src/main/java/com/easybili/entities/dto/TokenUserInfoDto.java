@@ -1,4 +1,4 @@
-package com.easybili.admin.dto;
+package com.easybili.entities.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.easybili.mappers.VideoInfoPostMapper">
+<!--    <insert id="insert" parameterType="com.easybili.entities.po.VideoInfoPost">-->
+<!--        INSERT INTO video_info_post-->
+<!--        (video_id, video_cover, video_name, user_id, create_time, last_update, p_category_id,-->
+<!--        category_id, status, post_type, origin_info, tags, introduction, interaction, duration)-->
+<!--        VALUES-->
+<!--        (#{videoId}, #{videoCover}, #{videoName}, #{userId}, #{createTime}, #{lastUpdate}, #{pCategoryId},-->
+<!--        #{categoryId}, #{status}, #{postType}, #{originInfo}, #{tags}, #{introduction}, #{interaction}, #{duration})-->
+<!--            </insert>-->
+<!--        </mapper>-->
+<!--    <resultMap id="VideoInfoPostMap" type="VideoInfoPost">-->
+<!--        <id property="videoId" column="video_id" />-->
+<!--        <result property="videoCover" column="video_cover" />-->
+<!--        <result property="videoName" column="video_name" />-->
+<!--        <result property="userId" column="user_id" />-->
+<!--        <result property="createTime" column="create_time" />-->
+<!--        <result property="lastUpdate" column="last_update" />-->
+<!--        <result property="pCategoryId" column="p_category_id" />-->
+<!--        <result property="categoryId" column="category_id" />-->
+<!--        <result property="status" column="status" />-->
+<!--        <result property="postType" column="post_type" />-->
+<!--        <result property="originInfo" column="origin_info" />-->
+<!--        <result property="tags" column="tags" />-->
+<!--        <result property="introduction" column="introduction" />-->
+<!--        <result property="interaction" column="interaction" />-->
+<!--        <result property="duration" column="duration" />-->
+<!--    </resultMap>-->
+    <sql id="query_condition">
+        <where>
+            <if test="query.categoryId != null">
+                AND v.category_id = #{query.categoryId}
+            </if>
+            <if test="query.videoId != null">
+                AND v.video_id = #{query.videoId}
+            </if>
+            <if test="query.pCategoryId != null">
+                AND v.p_category_id = #{query.pCategoryId}
+            </if>
+
+            <if test="query.userId != null and query.userId != ''">
+                AND v.user_id = #{query.userId}
+            </if>
+            <if test="query.status != null">
+                AND v.status = #{query.status}
+            </if>
+            <if test="query.excludeStatusArray != null and query.excludeStatusArray.length > 0">
+                AND v.status NOT IN
+                <foreach collection="query.excludeStatusArray" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+            <if test="query.videoNameFuzzy != null and query.videoNameFuzzy != ''">
+                AND v.video_name LIKE CONCAT('%', #{query.videoNameFuzzy}, '%')
+            </if>
+        </where>
+    </sql>
+
+
+
+    <select id="selectById"  parameterType="String" resultType="com.easybili.entities.po.VideoInfoPost">
+        SELECT * FROM video_info_post WHERE video_id = #{videoId}
+    </select>
+
+    <select id="selectByCategoryId" parameterType="int" >
+        SELECT * FROM video_info_post WHERE category_id = #{categoryId}
+    </select>
+
+    <select id="selectByPCategoryId" parameterType="int">
+        SELECT * FROM video_info_post WHERE p_category_id = #{pCategoryId}
+    </select>
+
+    <select id="selectByUserId" parameterType="String">
+        SELECT * FROM video_info_post WHERE user_id = #{userId}
+    </select>
+
+<!--    <select id="selectList"  parameterType="com.easybili.entities.query.VideoInfoPostQuery">-->
+<!--        SELECT * FROM video_info_file_post-->
+<!--        WHERE 1=1-->
+<!--        <if test="videoId != null">AND video_id = #{videoId}</if>-->
+<!--        <if test="uploadId != null">AND upload_id = #{uploadId}</if>-->
+<!--        <if test="userId != null">AND user_id = #{userId}</if>-->
+<!--    </select>-->
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoInfoPost">
+        INSERT INTO video_info_post (
+        video_id, video_cover, video_name, user_id, create_time, last_update, p_category_id,
+        category_id, status, post_type, origin_info, tags, introduction, interaction, duration
+        ) VALUES (
+        #{videoId}, #{videoCover}, #{videoName}, #{userId}, #{createTime}, #{lastUpdate}, #{pCategoryId},
+        #{categoryId}, #{status}, #{postType}, #{originInfo}, #{tags}, #{introduction}, #{interaction}, #{duration}
+        )
+    </insert>
+
+
+    <update id="updateByVideoId">
+        UPDATE video_info_post
+        <set>
+            <if test="videoUpdate.videoCover != null">video_cover = #{videoUpdate.videoCover},</if>
+            <if test="videoUpdate.videoName != null">video_name = #{videoUpdate.videoName},</if>
+            <if test="videoUpdate.userId != null">user_id = #{videoUpdate.userId},</if>
+            <if test="videoUpdate.lastUpdate != null">last_update = #{videoUpdate.lastUpdate},</if>
+            <if test="videoUpdate.pCategoryId != null">p_category_id = #{videoUpdate.pCategoryId},</if>
+            <if test="videoUpdate.categoryId != null">category_id = #{videoUpdate.categoryId},</if>
+            <if test="videoUpdate.status != null">status = #{videoUpdate.status},</if>
+            <if test="videoUpdate.postType != null">post_type = #{videoUpdate.postType},</if>
+            <if test="videoUpdate.originInfo != null">origin_info = #{videoUpdate.originInfo},</if>
+            <if test="videoUpdate.tags != null">tags = #{videoUpdate.tags},</if>
+            <if test="videoUpdate.introduction != null">introduction = #{videoUpdate.introduction},</if>
+            <if test="videoUpdate.interaction != null">interaction = #{videoUpdate.interaction},</if>
+            <if test="videoUpdate.duration != null">duration = #{videoUpdate.duration},</if>
+        </set>
+        WHERE video_id = #{videoId}
+    </update>
+
+
+    <delete id="deleteById" parameterType="String">
+        DELETE FROM video_info_post WHERE video_id = #{videoId}
+    </delete>
+
+    <select id="selectList" resultType="com.easybili.entities.po.VideoInfoPost">
+        select v.*
+        <if test="query.queryCountInfo">
+            , c.play_count, c.like_count, c.danmu_count, c.comment_count, c.coin_count, c.collect_count, c.recommend_type
+        </if>
+        <if test="query.queryUserInfo">
+            , u.user_name, u.avatar
+        </if>
+        from video_info_post v
+        <if test="query.queryCountInfo">
+            left join video_info c on c.video_id = v.video_id
+        </if>
+        <if test="query.queryUserInfo">
+            left join user_info u on u.user_id = v.user_id
+        </if>
+        <include refid="query_condition"/>
+        <if test="query.orderBy != null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            limit #{query.simplePage.start}, #{query.simplePage.end}
+        </if>
+    </select>
+
+    <select id="findCountByParam" resultType="java.lang.Integer">
+        select count(1)
+        from video_info_post v
+        <include refid="query_condition"/>
+    </select>
+
+    <update id="updateByParam">
+        UPDATE video_info_post v
+        <set>
+            <if test="videoUpdate.videoCover != null">v.video_cover = #{videoUpdate.videoCover},</if>
+            <if test="videoUpdate.videoName != null">v.video_name = #{videoUpdate.videoName},</if>
+            <if test="videoUpdate.userId != null">v.user_id = #{videoUpdate.userId},</if>
+            <if test="videoUpdate.lastUpdate != null">v.last_update = #{videoUpdate.lastUpdate},</if>
+            <if test="videoUpdate.pCategoryId != null">v.p_category_id = #{videoUpdate.pCategoryId},</if>
+            <if test="videoUpdate.categoryId != null">v.category_id = #{videoUpdate.categoryId},</if>
+            <if test="videoUpdate.status != null">v.status = #{videoUpdate.status},</if>
+            <if test="videoUpdate.postType != null">v.post_type = #{videoUpdate.postType},</if>
+            <if test="videoUpdate.originInfo != null">v.origin_info = #{videoUpdate.originInfo},</if>
+            <if test="videoUpdate.tags != null">v.tags = #{videoUpdate.tags},</if>
+            <if test="videoUpdate.introduction != null">v.introduction = #{videoUpdate.introduction},</if>
+            <if test="videoUpdate.interaction != null">v.interaction = #{videoUpdate.interaction},</if>
+            <if test="videoUpdate.duration != null">v.duration = #{videoUpdate.duration},</if>
+        </set>
+        <include refid="query_condition"/>
+
+
+
+    </update>
+
+</mapper>

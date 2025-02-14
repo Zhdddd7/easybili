@@ -1,7 +1,8 @@
-package com.easybili.web.utils;
+package com.easybili.utils;
 
-import com.easybili.web.po.UserInfo;
-import com.easybili.web.vo.UserInfoVO;
+
+import com.easybili.entities.po.UserInfo;
+import com.easybili.entities.vo.UserInfoVO;
 
 public class UserInfoConverter {
 

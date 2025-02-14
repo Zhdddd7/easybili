@@ -3,7 +3,20 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.easybili.web.mappers.UserInfoMapper">
+<mapper namespace="com.easybili.mappers.UserInfoMapper">
+    <sql id="query_condition">
+        <if test="query.userId != null">AND u.user_id = #{query.userId}</if>
+        <if test="query.userIdList != null and query.userIdList.size() > 0">
+            and u.user_id in (<foreach collection="query.userIdList" item="item" separator=","> #{item}</foreach> )
+        </if>
+        <if test="query.orderBy != null and query.orderBy != ''">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            LIMIT #{query.simplePage.start}, #{query.simplePage.end}
+        </if>
+
+    </sql>
 
     <!-- 查询用户 -->
     <select id="selectById" parameterType="string" resultType="com.easybili.entities.po.UserInfo">
@@ -18,6 +31,20 @@
         SELECT * FROM user_info WHERE email = #{email}
     </select>
 
+    <select id="selectList" resultType="com.easybili.entities.po.UserInfo">
+        select u.*
+        from user_info u
+        where 1 = 1
+        <include refid="query_condition"/>
+    </select>
+
+    <select id="selectCountByQuery" resultType="int">
+        select count(1)
+        from user_info u
+        where 1 = 1
+        <include refid="query_condition"/>
+    </select>
+
     <!-- 插入用户 -->
     <insert id="insert" parameterType="com.easybili.entities.po.UserInfo">
         INSERT INTO user_info (user_id, user_name, email, password, sex, birthday, school, person_introduction, join_time, last_login_time, last_login_ip, status, notice_info, total_coin_count, current_coin_count, theme)
@@ -25,25 +52,37 @@
     </insert>
 
     <!-- 更新用户 -->
-    <update id="update" parameterType="com.easybili.entities.po.UserInfo">
+    <update id="update" >
         UPDATE user_info
         <set>
-            <if test="userName != null">user_name = #{userName},</if>
-            <if test="email != null">email = #{email},</if>
-            <if test="password != null">password = #{password},</if>
-            <if test="sex != null">sex = #{sex},</if>
-            <if test="birthday != null">birthday = #{birthday},</if>
-            <if test="school != null">school = #{school},</if>
-            <if test="personIntroduction != null">person_introduction = #{personIntroduction},</if>
-            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
-            <if test="lastLoginIp != null">last_login_ip = #{lastLoginIp},</if>
-            <if test="status != null">status = #{status},</if>
-            <if test="noticeInfo != null">notice_info = #{noticeInfo},</if>
-            <if test="totalCoinCount != null">total_coin_count = #{totalCoinCount},</if>
-            <if test="currentCoinCount != null">current_coin_count = #{currentCoinCount},</if>
-            <if test="theme != null">theme = #{theme},</if>
+            <if test="userInfo.userName != null">user_name = #{userInfo.userName},</if>
+            <if test="userInfo.email != null">email = #{userInfo.email},</if>
+            <if test="userInfo.password != null">password = #{userInfo.password},</if>
+            <if test="userInfo.sex != null">sex = #{userInfo.sex},</if>
+            <if test="userInfo.avatar != null">avatar = #{userInfo.avatar},</if>
+            <if test="userInfo.birthday != null">birthday = #{userInfo.birthday},</if>
+            <if test="userInfo.school != null">school = #{userInfo.school},</if>
+            <if test="userInfo.personIntroduction != null">person_introduction = #{userInfo.personIntroduction},</if>
+            <if test="userInfo.lastLoginTime != null">last_login_time = #{userInfo.lastLoginTime},</if>
+            <if test="userInfo.lastLoginIp != null">last_login_ip = #{userInfo.lastLoginIp},</if>
+            <if test="userInfo.status != null">status = #{userInfo.status},</if>
+            <if test="userInfo.noticeInfo != null">notice_info = #{userInfo.noticeInfo},</if>
+            <if test="userInfo.totalCoinCount != null">total_coin_count = #{userInfo.totalCoinCount},</if>
+            <if test="userInfo.currentCoinCount != null">current_coin_count = #{userInfo.currentCoinCount},</if>
+            <if test="userInfo.theme != null">theme = #{userInfo.theme},</if>
         </set>
         WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateCoinCountInfo" parameterType="com.easybili.entities.po.UserInfo">
+        UPDATE user_info
+        <set>
+           current_coin_count = current_coin_count + #{changeCount}
+            <if test="changeCount > 0">
+                , total_coin_count = total_coin_count + #{changeCount}
+            </if>
+        </set>
+        where user_id = #{userId} and current_coin_count + #{changeCount} >= 0
     </update>
 
     <!-- 删除用户 -->

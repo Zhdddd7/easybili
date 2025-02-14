@@ -1,4 +1,10 @@
 package com.easybili.entities.vo;
 
-public class VideoStatusCountInfo {
+import lombok.Data;
+
+@Data
+public class VideoStatusCountInfoVO {
+    private Integer auditPassCount;
+    private Integer auditFailCount;
+    private Integer inProgress;
 }

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easybili.mappers.VideoCommentMapper">
+    <resultMap id="base_result_map" type="com.easybili.entities.po.VideoComment">
+        <id column="comment_id" property="commentId" />
+        <result column="p_comment_id" property="pCommentId" />
+        <result column="video_id" property="videoId" />
+        <result column="video_user_id" property="videoUserId" />
+        <result column="content" property="content" />
+        <result column="img_path" property="imgPath" />
+        <result column="user_id" property="userId" />
+        <result column="reply_user_id" property="replyUserId" />
+        <result column="top_type" property="topType" />
+        <result column="post_time" property="postTime" />
+        <result column="like_count" property="likeCount" />
+        <result column="hate_count" property="hateCount" />
+    </resultMap>
+
+    <sql id="query_condition">
+        <if test="query.videoId != null and query.videoId != ''">AND v.video_id = #{query.videoId}</if>
+        <if test="query.userId != null">AND v.user_id = #{query.userId}</if>
+        <if test="query.topType != null">AND v.top_type = #{query.topType}</if>
+        <if test="query.content != null">AND v.content LIKE CONCAT('%', #{query.content}, '%')</if>
+        <if test="query.replyUserId != null">AND v.reply_user_id = #{query.replyUserId}</if>
+        <if test="query.pCommentId != null">AND v.p_comment_id = #{query.pCommentId}</if>
+        <if test="query.topType != null">AND v.top_type = #{query.topType}</if>
+        <if test="query.videoNameFuzzy != null and query.videoId != ''">AND vd.video_name like concat('%', #{query.videoNameFuzzy},'%') </if>
+        <if test="query.orderBy != null and query.orderBy != ''">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.pageNo != null and query.pageSize != null">
+            LIMIT #{query.simplePage.end} OFFSET #{query.simplePage.start}
+        </if>
+    </sql>
+
+    <resultMap id="base_result_map_children" type="com.easybili.entities.po.VideoComment" extends="base_result_map">
+        <collection property="children" column="comment_id" select="com.easybili.mappers.VideoCommentMapper.selectChildComment">
+        </collection>
+    </resultMap>
+    
+    <select id="selectChildComment" resultMap="base_result_map">
+        select v.*,u.user_name userName, u.avatar avatar, u2.user_name replyUserName, u2.avatar replyAvatar from video_comment v
+        join user_info u on v.user_id = u.user_id
+        left join user_info u2 on u2.user_id = v.reply_user_id
+        where p_comment_id = #{commentId} order by v.comment_id asc
+    </select>
+
+    <select id="selectByQueryWithChildren" resultMap="base_result_map_children">
+        select *, u.user_name userName, u.avatar avatar
+        from video_comment v left join user_info u on v.user_id = u.user_id
+        where 1 = 1
+        <include refid="query_condition" />
+    </select>
+
+    <select id="selectById" parameterType="int" resultType="com.easybili.entities.po.VideoComment">
+        SELECT * FROM video_comment WHERE comment_id = #{commentId}
+    </select>
+
+    <select id="selectByQuery" resultType="com.easybili.entities.po.VideoComment">
+        SELECT v.*
+        <if test="query.queryVideoInfo">
+            , vd.video_name videoName, vd.video_cover videoCover, u.user_name userName, u.avatar, u2.user_name replyUserName
+        </if>
+        FROM video_comment v
+        <if test="query.queryVideoInfo">
+            join video_info vd on vd.video_id = v.video_id
+            left join user_info u on u.user_id = v.user_id
+            left join user_info u2 on u2.user_id = v.reply_user_id
+        </if>
+        WHERE 1=1
+        <include refid="query_condition"/>
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoComment">
+        INSERT INTO video_comment (
+        p_comment_id, video_id, video_user_id, content, img_path, user_id, reply_user_id,
+        top_type, post_time, like_count, hate_count
+        )
+        VALUES (
+        #{pCommentId}, #{videoId}, #{videoUserId}, #{content}, #{imgPath}, #{userId},
+        #{replyUserId}, #{topType}, #{postTime}, #{likeCount}, #{hateCount}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.easybili.entities.po.VideoComment">
+        UPDATE video_comment
+        <set>
+            <if test="pCommentId != null">p_comment_id = #{pCommentId},</if>
+            <if test="videoId != null">video_id = #{videoId},</if>
+            <if test="videoUserId != null">video_user_id = #{videoUserId},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="imgPath != null">img_path = #{imgPath},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="replyUserId != null">reply_user_id = #{replyUserId},</if>
+            <if test="topType != null">top_type = #{topType},</if>
+            <if test="postTime != null">post_time = #{postTime},</if>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="hateCount != null">hate_count = #{hateCount}</if>
+        </set>
+        WHERE comment_id = #{commentId}
+    </update>
+
+
+    <update id="updateByQuery">
+        UPDATE video_comment v
+        <set>
+            <if test="videoComment.pCommentId != null">v.p_comment_id = #{videoComment.pCommentId},</if>
+            <if test="videoComment.videoId != null">v.video_id = #{videoComment.videoId},</if>
+            <if test="videoComment.videoUserId != null">v.video_user_id = #{videoComment.videoUserId},</if>
+            <if test="videoComment.content != null">v.content = #{videoComment.content},</if>
+            <if test="videoComment.imgPath != null">v.img_path = #{videoComment.imgPath},</if>
+            <if test="videoComment.userId != null">v.user_id = #{videoComment.userId},</if>
+            <if test="videoComment.replyUserId != null">v.reply_user_id = #{videoComment.replyUserId},</if>
+            <if test="videoComment.topType != null">v.top_type = #{videoComment.topType},</if>
+            <if test="videoComment.postTime != null">v.post_time = #{videoComment.postTime},</if>
+            <if test="videoComment.likeCount != null">v.like_count = #{videoComment.likeCount},</if>
+            <if test="videoComment.hateCount != null">v.hate_count = #{videoComment.hateCount}</if>
+        </set>
+        where 1 = 1
+        <include refid="query_condition"/>
+    </update>
+
+    <update id="updateByCommentId">
+        UPDATE video_comment v
+        <set>
+            <if test="videoComment.pCommentId != null">v.p_comment_id = #{videoComment.pCommentId},</if>
+            <if test="videoComment.videoId != null">v.video_id = #{videoComment.videoId},</if>
+            <if test="videoComment.videoUserId != null">v.video_user_id = #{videoComment.videoUserId},</if>
+            <if test="videoComment.content != null">v.content = #{videoComment.content},</if>
+            <if test="videoComment.imgPath != null">v.img_path = #{videoComment.imgPath},</if>
+            <if test="videoComment.userId != null">v.user_id = #{videoComment.userId},</if>
+            <if test="videoComment.replyUserId != null">v.reply_user_id = #{videoComment.replyUserId},</if>
+            <if test="videoComment.topType != null">v.top_type = #{videoComment.topType},</if>
+            <if test="videoComment.postTime != null">v.post_time = #{videoComment.postTime},</if>
+            <if test="videoComment.likeCount != null">v.like_count = #{videoComment.likeCount},</if>
+            <if test="videoComment.hateCount != null">v.hate_count = #{videoComment.hateCount}</if>
+        </set>
+        where v.videoComment = #{commentId}
+    </update>
+
+    <update id="updateCountInfo">
+        update video_comment set ${field} = ${field} + #{changeCount}
+        <if test="opposeField != null">
+            , ${opposeField} = ${opposeField} + #{opposeChangeCount}
+        </if>
+        where comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM video_comment WHERE comment_id = #{commentId}
+    </delete>
+
+    <delete id="deleteByQuery">
+        DELETE FROM video_comment v WHERE 1 = 1
+        <include refid="query_condition"/>
+    </delete>
+
+
+
+</mapper>

@@ -2,27 +2,29 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.mapper.CategoryInfoMapper">
+<mapper namespace="com.easybili.mappers.CategoryInfoMapper">
 
     <!-- Insert category -->
-    <insert id="insertCategory" parameterType="com.example.entity.CategoryInfo">
+    <insert id="insertCategory" parameterType="com.easybili.entities.po.CategoryInfo">
         INSERT INTO category_info
         (category_code, category_name, p_category_id, icon, background, sort)
         VALUES
         (#{categoryCode}, #{categoryName}, #{pCategoryId}, #{icon}, #{background}, #{sort})
     </insert>
 
-    <!-- Update category -->
-    <update id="updateCategory" parameterType="com.example.entity.CategoryInfo">
+    <update id="updateCategory" parameterType="com.easybili.entities.po.CategoryInfo">
         UPDATE category_info
-        SET category_code = #{categoryCode},
-        category_name = #{categoryName},
-        p_category_id = #{pCategoryId},
-        icon = #{icon},
-        background = #{background},
-        sort = #{sort}
+        <set>
+            <if test="categoryCode != null">category_code = #{categoryCode},</if>
+            <if test="categoryName != null">category_name = #{categoryName},</if>
+            <if test="pCategoryId != null">p_category_id = #{pCategoryId},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="background != null">background = #{background},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </set>
         WHERE category_id = #{categoryId}
     </update>
+
 
     <!-- Delete category by ID -->
     <delete id="deleteCategoryById" parameterType="int">
@@ -30,14 +32,26 @@
         WHERE category_id = #{categoryId}
     </delete>
 
+    <!-- Delete category by Code -->
+    <delete id="deleteCategoryByCode" parameterType="string">
+        DELETE FROM category_info
+        WHERE category_code = #{categoryCode}
+    </delete>
+
     <!-- Select category by ID -->
-    <select id="selectCategoryById" parameterType="int" resultType="com.example.entity.CategoryInfo">
+    <select id="selectCategoryById" parameterType="int" resultType="com.easybili.entities.po.CategoryInfo">
         SELECT * FROM category_info
         WHERE category_id = #{categoryId}
     </select>
 
+    <!-- Select category by Code -->
+    <select id="selectCategoryByCode" parameterType="String" resultType="com.easybili.entities.po.CategoryInfo">
+        SELECT * FROM category_info
+        WHERE category_code = #{categoryCode}
+    </select>
+
     <!-- Query categories with conditions -->
-    <select id="queryCategories" parameterType="com.example.query.CategoryInfoQuery" resultType="com.example.entity.CategoryInfo">
+    <select id="queryCategories" parameterType="com.easybili.entities.query.CategoryInfoQuery" resultType="com.easybili.entities.po.CategoryInfo">
         SELECT * FROM category_info
         WHERE 1=1
         <if test="categoryCode != null and categoryCode != ''">
@@ -46,8 +60,35 @@
         <if test="categoryName != null and categoryName != ''">
             AND category_name LIKE CONCAT('%', #{categoryName}, '%')
         </if>
-        ORDER BY sort ASC
-        LIMIT #{pageNum}, #{pageSize}
+        <if test="orderBy == null or orderBy == '' ">
+            ORDER BY sort ASC
+        </if>
+        <if test="orderBy != null or orderBy != '' ">
+            ORDER BY ${orderBy}
+        </if>
+        LIMIT #{offset}, #{pageSize}
     </select>
+
+    <!-- Delete categories with conditions -->
+    <delete id="deleteCategories" parameterType="com.easybili.entities.query.CategoryInfoQuery">
+        DELETE FROM category_info
+        WHERE 0=1
+        <if test="categoryIdOrPCategoryId != null">
+           OR (category_id = #{categoryIdOrPCategoryId} OR p_category_id = #{categoryIdOrPCategoryId})
+        </if>
+
+    </delete>
+
+
+    <select id="selectMaxSort" parameterType="int" resultType="int">
+        SELECT IFNULL(MAX(sort), 0) FROM category_info where p_category_id = #{pCategoryId}
+    </select>
+
+
+    <update id="updateSortBatch">
+        <foreach collection="list" separator=";" item="item">
+            update category_info set sort = #{item.sort} where category_id = #{item.categoryId} and p_category_id = #{item.pCategoryId}
+        </foreach>
+    </update>
 
 </mapper>

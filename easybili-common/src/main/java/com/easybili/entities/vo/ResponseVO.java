@@ -1,4 +1,4 @@
-package com.easybili.admin.vo;
+package com.easybili.entities.vo;
 
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.easybili.admin.enums;
+package com.easybili.entities.enums;
 
 public enum UserSexEnum {
 

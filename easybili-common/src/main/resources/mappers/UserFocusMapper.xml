@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.UserFocusMapper">
+
+    <!-- 通用查询条件 -->
+    <sql id="query_condition">
+        <where>
+            <if test="query.userId != null">
+                AND u.user_id = #{query.userId}
+            </if>
+            <if test="query.focusUserId != null">
+                AND u.focus_user_id = #{query.focusUserId}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="com.easybili.entities.po.UserFocus">
+        INSERT INTO user_focus (user_id, focus_user_id, focus_time)
+        VALUES (#{userId}, #{focusUserId}, #{focusTime})
+    </insert>
+
+    <!-- 删除主键数据 -->
+    <delete id="deleteById">
+        DELETE FROM user_focus
+        WHERE user_id = #{userId} AND focus_user_id = #{focusUserId}
+    </delete>
+
+    <!-- 更新主键数据 -->
+    <update id="updateById">
+        UPDATE user_focus
+        <set>
+            <if test="focusTime != null">
+                focus_time = #{focusTime},
+            </if>
+        </set>
+        WHERE user_id = #{userId} AND focus_user_id = #{focusUserId}
+    </update>
+
+    <!-- 查询主键数据 -->
+    <select id="selectById" resultType="com.easybili.entities.po.UserFocus">
+        SELECT * FROM user_focus
+        WHERE user_id = #{userId} AND focus_user_id = #{focusUserId}
+    </select>
+
+    <!-- 根据条件查询 -->
+    <select id="selectByQuery" resultType="com.easybili.entities.po.UserFocus">
+        SELECT u.*
+        <if test="query.queryType != null">
+            ,i.user_name otherUserName, i.user_id otherUserId, i.person_introduction otherPersonIntroduction,
+            i.avatar otherAvatar, (select count(1) from user_focus f where u.user_id = f.focus_user_id and u.focus_user_id = f.user_id) focusType
+        </if>
+        from user_focus u
+        <if test="query.queryType ==0">
+            join user_info i on i.user_id = u.focus_user_id
+        </if>
+        <if test="query.queryType ==1">
+            join user_info i on i.user_id = u.user_id
+        </if>
+        <include refid="query_condition" />
+        <if test="query.orderBy != null">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            LIMIT #{query.simplePage.start}, #{query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 根据条件更新 -->
+    <update id="updateByQuery">
+        UPDATE user_focus u
+        <set>
+            <if test="record.focusTime != null">
+                u.focus_time = #{record.focusTime},
+            </if>
+        </set>
+        <include refid="query_condition" />
+    </update>
+
+    <!-- 根据条件删除 -->
+    <delete id="deleteByQuery">
+        DELETE FROM user_focus u
+        <include refid="query_condition" />
+    </delete>
+
+    <select id="selectFansCount" resultType="java.lang.Integer">
+        select count(1) from user_focus where focus_user_id = #{userId}
+    </select>
+
+    <select id="selectFocusCount" resultType="java.lang.Integer">
+        select count(1) from user_focus where user_id = #{userId}
+    </select>
+</mapper>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.VideoInfoFileMapper">
+<!--    <resultMap id="VideoInfoFileMap" type="VideoInfoFile">-->
+<!--        <id property="fileId" column="file_id" />-->
+<!--        <result property="userId" column="user_id" />-->
+<!--        <result property="videoId" column="video_id" />-->
+<!--        <result property="fileName" column="file_name" />-->
+<!--        <result property="fileIndex" column="file_index" />-->
+<!--        <result property="fileSize" column="file_size" />-->
+<!--        <result property="filePath" column="file_path" />-->
+<!--        <result property="duration" column="duration" />-->
+<!--    </resultMap>-->
+
+    <sql id="query_condition">
+        <where>
+            <if test="query.videoId != null">
+                AND v.video_id = #{query.videoId}
+            </if>
+
+            <if test="query.orderBy != null and query.orderBy != ''">
+                ORDER BY ${query.orderBy}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectByQuery" resultType="com.easybili.entities.po.VideoInfoFile">
+        SELECT *
+        FROM video_info_file v
+        <include refid="query_condition"/>
+    </select>
+
+    <select id="selectById"  parameterType="String" resultType="com.easybili.entities.po.VideoInfoFile">
+        SELECT * FROM video_info_file WHERE file_id = #{fileId}
+    </select>
+
+    <select id="selectByVideoId"  parameterType="String">
+        SELECT * FROM video_info_file WHERE video_id = #{videoId}
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoInfoFile">
+        INSERT INTO video_info_file (
+        file_id, user_id, video_id, file_name, file_index, file_size, file_path, duration
+        ) VALUES (
+        #{fileId}, #{userId}, #{videoId}, #{fileName}, #{fileIndex}, #{fileSize}, #{filePath}, #{duration}
+        )
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO video_info_file (
+        file_id, user_id, video_id, file_name, file_index, file_size, file_path, duration
+        ) VALUES
+        <foreach collection="videoInfoFileList" item="item" separator=",">
+            (
+            #{item.fileId}, #{item.userId}, #{item.videoId}, #{item.fileName}, #{item.fileIndex}, #{item.fileSize}, #{item.filePath}, #{item.duration}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="update" parameterType="com.easybili.entities.po.VideoInfoFile">
+        UPDATE video_info_file
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="videoId != null">video_id = #{videoId},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileIndex != null">file_index = #{fileIndex},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="duration != null">duration = #{duration},</if>
+        </set>
+        WHERE file_id = #{fileId}
+    </update>
+
+
+    <delete id="deleteById" parameterType="String">
+        DELETE FROM video_info_file WHERE file_id = #{fileId}
+    </delete>
+
+    <delete id="deleteByParam">
+        DELETE FROM video_info_file
+        <where>
+            <if test="query.videoId != null and query.videoId != ''">
+                AND video_id = #{query.videoId}
+            </if>
+        </where>
+    </delete>
+
+
+</mapper>

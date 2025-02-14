@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.VideoInfoFilePostMapper">
+<!--    <resultMap id="VideoInfoFilePostMap" type="VideoInfoFilePost">-->
+<!--        <id property="fileId" column="file_id" />-->
+<!--        <result property="uploadId" column="upload_id" />-->
+<!--        <result property="userId" column="user_id" />-->
+<!--        <result property="videoId" column="video_id" />-->
+<!--        <result property="fileIndex" column="file_index" />-->
+<!--        <result property="fileName" column="file_name" />-->
+<!--        <result property="fileSize" column="file_size" />-->
+<!--        <result property="filePath" column="file_path" />-->
+<!--        <result property="updateType" column="update_type" />-->
+<!--        <result property="transferResult" column="transfer_result" />-->
+<!--        <result property="duration" column="duration" />-->
+<!--    </resultMap>-->
+
+    <sql id="query_condition">
+        <where>
+            <if test="query.videoId != null and query.videoId != ''">
+                AND video_id = #{query.videoId}
+            </if>
+            <if test="query.uploadId != null and query.uploadId != ''">
+                AND upload_id = #{query.uploadId}
+            </if>
+            <if test="query.userId != null and query.userId != ''">
+                AND user_id = #{query.userId}
+            </if>
+            <if test="query.transferResult != null">
+                AND transfer_result = #{query.transferResult}
+            </if>
+            <if test="query.orderBy != null and query.orderBy != ''">
+                ORDER BY ${query.orderBy}
+            </if>
+
+        </where>
+    </sql>
+
+
+    <select id="selectById" parameterType="String">
+        SELECT * FROM video_info_file_post WHERE file_id = #{fileId}
+    </select>
+
+    <select id="selectByVideoId" parameterType="String">
+        SELECT * FROM video_info_file_post WHERE video_id = #{videoId}
+    </select>
+
+    <select id="selectByUploadIdAndUserId" >
+        SELECT * FROM video_info_file_post WHERE upload_id = #{uploadId} AND user_id = #{userId}
+    </select>
+
+    <select id="selectList" parameterType="com.easybili.entities.query.VideoInfoFilePostQuery" resultType="com.easybili.entities.po.VideoInfoFilePost">
+        SELECT * FROM video_info_file_post
+        WHERE 1=1
+        <if test="videoId != null">AND video_id = #{videoId}</if>
+        <if test="uploadId != null">AND upload_id = #{uploadId}</if>
+        <if test="userId != null">AND user_id = #{userId}</if>
+    </select>
+
+    <select id="selectByQuery" resultType="com.easybili.entities.po.VideoInfoFilePost">
+        SELECT * FROM video_info_file_post
+        <include refid="query_condition"/>
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoInfoFilePost">
+        INSERT INTO video_info_file_post (
+        file_id, upload_id, user_id, video_id, file_index, file_name, file_size, file_path,
+        update_type, transfer_result, duration
+        ) VALUES (
+        #{fileId}, #{uploadId}, #{userId}, #{videoId}, #{fileIndex}, #{fileName}, #{fileSize}, #{filePath},
+        #{updateType}, #{transferResult}, #{duration}
+        )
+    </insert>
+
+    <insert id="insertOrUpdateBatch" parameterType="java.util.List">
+        INSERT INTO video_info_file_post (
+        file_id, upload_id, user_id, video_id, file_index, file_name, file_size, file_path,
+        update_type, transfer_result, duration
+        ) VALUES
+        <foreach collection="uploadFileList" item="item" separator=",">
+            (#{item.fileId}, #{item.uploadId}, #{item.userId}, #{item.videoId}, #{item.fileIndex}, #{item.fileName},
+            #{item.fileSize}, #{item.filePath}, #{item.updateType}, #{item.transferResult}, #{item.duration})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        file_index = VALUES(file_index),
+        file_name = VALUES(file_name),
+        file_size = VALUES(file_size),
+        file_path = VALUES(file_path),
+        update_type = VALUES(update_type),
+        transfer_result = VALUES(transfer_result),
+        duration = VALUES(duration);
+    </insert>
+
+    <update id="update" parameterType="com.easybili.entities.po.VideoInfoFilePost">
+        UPDATE video_info_file_post
+        <set>
+            <if test="uploadId != null">upload_id = #{uploadId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="videoId != null">video_id = #{videoId},</if>
+            <if test="fileIndex != null">file_index = #{fileIndex},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="updateType != null">update_type = #{updateType},</if>
+            <if test="transferResult != null">transfer_result = #{transferResult},</if>
+            <if test="duration != null">duration = #{duration},</if>
+        </set>
+        WHERE file_id = #{fileId}
+    </update>
+
+    <update id="updateByUploadIdAndUserId">
+        UPDATE video_info_file_post
+        <set>
+            <if test="updateFilePost.videoId != null">video_id = #{updateFilePost.videoId},</if>
+            <if test="updateFilePost.fileIndex != null">file_index = #{updateFilePost.fileIndex},</if>
+            <if test="updateFilePost.fileName != null">file_name = #{updateFilePost.fileName},</if>
+            <if test="updateFilePost.fileSize != null">file_size = #{updateFilePost.fileSize},</if>
+            <if test="updateFilePost.filePath != null">file_path = #{updateFilePost.filePath},</if>
+            <if test="updateFilePost.updateType != null">update_type = #{updateFilePost.updateType},</if>
+            <if test="updateFilePost.transferResult != null">transfer_result = #{updateFilePost.transferResult},</if>
+            <if test="updateFilePost.duration != null">duration = #{updateFilePost.duration},</if>
+        </set>
+        WHERE upload_id = #{uploadId} AND user_id = #{userId}
+    </update>
+
+    <update id="updateByParam">
+        UPDATE video_info_file_post
+        <set>
+            <if test="updateFilePost.uploadId != null">upload_id = #{updateFilePost.uploadId},</if>
+            <if test="updateFilePost.userId != null">user_id = #{updateFilePost.userId},</if>
+            <if test="updateFilePost.videoId != null">video_id = #{updateFilePost.videoId},</if>
+            <if test="updateFilePost.fileIndex != null">file_index = #{updateFilePost.fileIndex},</if>
+            <if test="updateFilePost.fileName != null">file_name = #{updateFilePost.fileName},</if>
+            <if test="updateFilePost.fileSize != null">file_size = #{updateFilePost.fileSize},</if>
+            <if test="updateFilePost.filePath != null">file_path = #{updateFilePost.filePath},</if>
+            <if test="updateFilePost.updateType != null">update_type = #{updateFilePost.updateType},</if>
+            <if test="updateFilePost.transferResult != null">transfer_result = #{updateFilePost.transferResult},</if>
+            <if test="updateFilePost.duration != null">duration = #{updateFilePost.duration},</if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM video_info_file_post WHERE file_id = #{fileId}
+    </delete>
+
+    <delete id="deleteBatchByFileId">
+        DELETE FROM video_info_file_post
+        WHERE file_id IN
+        <foreach item="fileId" collection="delFileList" open="(" separator="," close=")">
+            #{fileId}
+        </foreach>
+        AND user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByQuery">
+        DELETE FROM video_info_file_post
+        <include refid="query_condition" />
+    </delete>
+
+
+
+    <select id="selectCount" parameterType="com.easybili.entities.query.VideoInfoFilePostQuery" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM video_info_file_post
+        WHERE video_id = #{videoId} AND transfer_result = #{transferResult}
+    </select>
+
+    <select id="sumDuration" parameterType="String" resultType="java.lang.Integer">
+        SELECT IFNULL(SUM(duration), 0) FROM video_info_file_post
+        WHERE video_id = #{videoId}
+    </select>
+
+
+
+
+</mapper>

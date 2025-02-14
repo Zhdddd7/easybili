@@ -1,7 +1,7 @@
-package com.easybili.web.controller;
+package com.easybili.controller;
 
-import com.easybili.web.exception.BusinessException;
-import com.easybili.web.vo.ResponseVO;
+import com.easybili.entities.exception.BusinessException;
+import com.easybili.entities.vo.ResponseVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;

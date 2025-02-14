@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.VideoPlayHistoryMapper">
+    <sql id="query_condition">
+        <where>
+            <if test="query.userId != null">
+                AND v.user_id = #{query.userId}
+            </if>
+            <if test="query.videoId != null">
+                AND v.video_id = #{query.videoId}
+            </if>
+            <if test="query.fileIndex != null">
+                AND v.file_index = #{query.fileIndex}
+            </if>
+            <if test="query.lastUpdateTimeStart != null">
+                AND v.last_update_time &gt;= #{query.lastUpdateTimeStart}
+            </if>
+            <if test="query.lastUpdateTimeEnd != null">
+                AND v.last_update_time &lt;= #{query.lastUpdateTimeEnd}
+            </if>
+        </where>
+        <if test="query.orderBy != null">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            LIMIT #{query.simplePage.start}, #{query.simplePage.end}
+        </if>
+    </sql>
+
+    <select id="selectByQuery" resultType="com.easybili.entities.po.VideoPlayHistory">
+        SELECT v.*
+        <if test="query.queryVideoDetail">
+            , d.video_cover videoCover, d.video_name videoName
+        </if>
+        FROM video_play_history v
+        <if test="query.queryVideoDetail">
+            left join video_info d on d.video_id = v.video_id
+        </if>
+        <include refid="query_condition"/>
+    </select>
+
+    <select id="selectByPrimaryKey" resultType="com.easybili.entities.po.VideoPlayHistory">
+        SELECT user_id, video_id, file_index, last_update_time
+        FROM video_play_history
+        where user_id = #{userId} and video_id = #{videoId}
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoPlayHistory">
+        INSERT INTO video_play_history (user_id, video_id, file_index, last_update_time)
+        VALUES (#{userId}, #{videoId}, #{fileIndex}, #{lastUpdateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE video_play_history
+        SET last_update_time = #{record.lastUpdateTime}
+        WHERE user_id = #{userId} AND video_id = #{videoId}
+    </update>
+
+    <delete id="deleteById" parameterType="com.easybili.entities.po.VideoPlayHistory">
+        DELETE FROM video_play_history
+        WHERE user_id = #{userId} AND video_id = #{videoId} AND file_index = #{fileIndex}
+    </delete>
+
+    <delete id="deleteByQuery">
+        DELETE FROM video_play_history v
+        <include refid="query_condition"/>
+    </delete>
+
+
+</mapper>

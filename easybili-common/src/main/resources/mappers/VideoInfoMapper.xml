@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easybili.mappers.VideoInfoMapper">
+<!--    <resultMap id="VideoInfoMap" type="VideoInfo">-->
+<!--        <id property="videoId" column="video_id" />-->
+<!--        <result property="videoCover" column="video_cover" />-->
+<!--        <result property="videoName" column="video_name" />-->
+<!--        <result property="userId" column="user_id" />-->
+<!--        <result property="createTime" column="create_time" />-->
+<!--        <result property="lastUpdateTime" column="last_update_time" />-->
+<!--        <result property="pCategoryId" column="p_category_id" />-->
+<!--        <result property="categoryId" column="category_id" />-->
+<!--        <result property="postType" column="post_type" />-->
+<!--        <result property="originInfo" column="origin_info" />-->
+<!--        <result property="tags" column="tags" />-->
+<!--        <result property="introduction" column="introduction" />-->
+<!--        <result property="interaction" column="interaction" />-->
+<!--        <result property="duration" column="duration" />-->
+<!--        <result property="playCount" column="play_count" />-->
+<!--        <result property="likeCount" column="like_count" />-->
+<!--        <result property="danmuCount" column="danmu_count" />-->
+<!--        <result property="commentCount" column="comment_count" />-->
+<!--        <result property="coinCount" column="coin_count" />-->
+<!--        <result property="collectCount" column="collect_count" />-->
+<!--        <result property="recommendType" column="recommend_type" />-->
+<!--        <result property="lastPlayTime" column="last_play_time" />-->
+<!--    </resultMap>-->
+    <sql id="query_condition">
+        <where>
+            <if test="query.categoryId != null">
+                AND v.category_id = #{query.categoryId}
+            </if>
+            <if test="query.pCategoryId != null">
+                AND v.p_category_id = #{query.pCategoryId}
+            </if>
+            <if test="query.categoryIdOrPCategoryId != null">
+                AND v.category_id = #{query.categoryIdOrPCategoryId} OR v.p_category_id = #{query.categoryIdOrPCategoryId}
+            </if>
+            <if test="query.recommendType != null">
+                AND v.recommend_type = #{query.recommendType}
+            </if>
+            <if test="query.tags != null and query.tags != ''">
+                AND v.tags LIKE CONCAT('%', #{query.tags}, '%')
+            </if>
+            <if test="query.userId != null and query.userId != ''">
+                AND v.user_id = #{query.userId}
+            </if>
+            <if test="query.createTime != null">
+                AND v.create_time &gt;= #{query.createTime}
+            </if>
+            <if test="query.lastPlayTime != null">
+                AND v.last_play_time &lt;= #{query.lastPlayTime}
+            </if>
+            <if test="query.lastPlayHour != null">
+                AND v.last_play_time &gt;= date_sub(now(), interval #{query.lastPlayHour} hour)
+            </if>
+            <if test="query.videoNameFuzzy != null and query.videoNameFuzzy != ''">
+                AND v.video_name LIKE CONCAT('%', #{query.videoNameFuzzy}, '%')
+            </if>
+            <if test="query.videoIdArray != null and query.videoIdArray.length > 0">
+                AND v.video_id in (<foreach collection="query.videoIdArray" item="item" separator=","> #{item}</foreach>)
+            </if>
+            <if test="query.orderBy != null and query.orderBy != ''">
+                ORDER BY ${query.orderBy}
+            </if>
+        </where>
+    </sql>
+
+
+    <select id="selectById"  parameterType="String" resultType="com.easybili.entities.po.VideoInfo">
+        SELECT * FROM video_info WHERE video_id = #{videoId}
+    </select>
+
+    <select id="selectByQuery" resultType="com.easybili.entities.po.VideoInfo">
+        SELECT v.*
+        <if test="query.queryUserInfo">
+            ,u.user_name, u.avatar
+        </if>
+        FROM video_info v
+        <if test="query.queryUserInfo">
+            left join user_info u on u.user_id = v.user_id
+        </if>
+        <include refid="query_condition"/>
+    </select>
+
+
+    <select id="selectSumCountInfo" resultType="com.easybili.entities.dto.CountInfoDto">
+        SELECT ifnull(sum(v.play_count), 0) playCount, ifnull(sum(v.like_count), 0) likeCount
+        FROM video_info v
+        where v.user_id = #{userId}
+    </select>
+
+
+    <select id="selectByCategoryId"  parameterType="int">
+        SELECT * FROM video_info WHERE category_id = #{categoryId}
+    </select>
+
+    <select id="selectByCreateTime"  parameterType="java.time.LocalDateTime">
+        SELECT * FROM video_info WHERE create_time = #{createTime}
+    </select>
+
+    <select id="selectByLastPlayTime"  parameterType="java.time.LocalDateTime">
+        SELECT * FROM video_info WHERE last_play_time = #{lastPlayTime}
+    </select>
+
+    <select id="selectByRecommendType"  parameterType="int" >
+        SELECT * FROM video_info WHERE recommend_type = #{recommendType}
+    </select>
+
+    <select id="selectByTags"  parameterType="String">
+        SELECT * FROM video_info WHERE tags LIKE CONCAT('%', #{tags}, '%')
+    </select>
+
+    <select id="selectByUserId"  parameterType="String">
+        SELECT * FROM video_info WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoInfo">
+        INSERT INTO video_info (
+        video_id, video_cover, video_name, user_id, create_time, last_update_time, p_category_id,
+        category_id, post_type, origin_info, tags, introduction, interaction, duration,
+        play_count, like_count, danmu_count, comment_count, coin_count, collect_count,
+        recommend_type, last_play_time
+        ) VALUES (
+        #{videoId}, #{videoCover}, #{videoName}, #{userId}, #{createTime}, #{lastUpdateTime}, #{pCategoryId},
+        #{categoryId}, #{postType}, #{originInfo}, #{tags}, #{introduction}, #{interaction}, #{duration},
+        #{playCount}, #{likeCount}, #{danmuCount}, #{commentCount}, #{coinCount}, #{collectCount},
+        #{recommendType}, #{lastPlayTime}
+        )
+    </insert>
+
+    <insert id="insertOrUpdate" parameterType="com.easybili.entities.po.VideoInfo">
+        INSERT INTO video_info (
+        video_id,
+        video_cover,
+        video_name,
+        user_id,
+        create_time,
+        last_update_time,
+        p_category_id,
+        category_id,
+        post_type,
+        origin_info,
+        tags,
+        introduction,
+        interaction,
+        duration,
+        play_count,
+        like_count,
+        danmu_count,
+        comment_count,
+        coin_count,
+        collect_count,
+        recommend_type,
+        last_play_time
+        )
+        VALUES (
+        #{videoInfo.videoId},
+        #{videoInfo.videoCover},
+        #{videoInfo.videoName},
+        #{videoInfo.userId},
+        #{videoInfo.createTime},
+        #{videoInfo.lastUpdateTime},
+        #{videoInfo.pCategoryId},
+        #{videoInfo.categoryId},
+        #{videoInfo.postType},
+        #{videoInfo.originInfo},
+        #{videoInfo.tags},
+        #{videoInfo.introduction},
+        #{videoInfo.interaction},
+        #{videoInfo.duration},
+        #{videoInfo.playCount},
+        #{videoInfo.likeCount},
+        #{videoInfo.danmuCount},
+        #{videoInfo.commentCount},
+        #{videoInfo.coinCount},
+        #{videoInfo.collectCount},
+        #{videoInfo.recommendType},
+        #{videoInfo.lastPlayTime}
+        )
+        ON DUPLICATE KEY UPDATE
+        video_cover = VALUES(video_cover),
+        video_name = VALUES(video_name),
+        user_id = VALUES(user_id),
+        create_time = VALUES(create_time),
+        last_update_time = VALUES(last_update_time),
+        p_category_id = VALUES(p_category_id),
+        category_id = VALUES(category_id),
+        post_type = VALUES(post_type),
+        origin_info = VALUES(origin_info),
+        tags = VALUES(tags),
+        introduction = VALUES(introduction),
+        interaction = VALUES(interaction),
+        duration = VALUES(duration),
+        play_count = VALUES(play_count),
+        like_count = VALUES(like_count),
+        danmu_count = VALUES(danmu_count),
+        comment_count = VALUES(comment_count),
+        coin_count = VALUES(coin_count),
+        collect_count = VALUES(collect_count),
+        recommend_type = VALUES(recommend_type),
+        last_play_time = VALUES(last_play_time)
+    </insert>
+
+
+    <update id="update">
+        UPDATE video_info
+        <set>
+            <if test="videoInfo.videoCover != null">video_cover = #{videoInfo.videoCover},</if>
+            <if test="videoInfo.videoName != null">video_name = #{videoInfo.videoName},</if>
+            <if test="videoInfo.userId != null">user_id = #{videoInfo.userId},</if>
+            <if test="videoInfo.lastUpdateTime != null">last_update_time = #{videoInfo.lastUpdateTime},</if>
+            <if test="videoInfo.pCategoryId != null">p_category_id = #{videoInfo.pCategoryId},</if>
+            <if test="videoInfo.categoryId != null">category_id = #{videoInfo.categoryId},</if>
+            <if test="videoInfo.postType != null">post_type = #{videoInfo.postType},</if>
+            <if test="videoInfo.originInfo != null">origin_info = #{videoInfo.originInfo},</if>
+            <if test="videoInfo.tags != null">tags = #{videoInfo.tags},</if>
+            <if test="videoInfo.introduction != null">introduction = #{videoInfo.introduction},</if>
+            <if test="videoInfo.interaction != null">interaction = #{videoInfo.interaction},</if>
+            <if test="videoInfo.duration != null">duration = #{videoInfo.duration},</if>
+            <if test="videoInfo.playCount != null">play_count = #{videoInfo.playCount},</if>
+            <if test="videoInfo.likeCount != null">like_count = #{videoInfo.likeCount},</if>
+            <if test="videoInfo.danmuCount != null">danmu_count = #{videoInfo.danmuCount},</if>
+            <if test="videoInfo.commentCount != null">comment_count = #{videoInfo.commentCount},</if>
+            <if test="videoInfo.coinCount != null">coin_count = #{videoInfo.coinCount},</if>
+            <if test="videoInfo.collectCount != null">collect_count = #{videoInfo.collectCount},</if>
+            <if test="videoInfo.recommendType != null">recommend_type = #{videoInfo.recommendType},</if>
+            <if test="videoInfo.lastPlayTime != null">last_play_time = #{videoInfo.lastPlayTime},</if>
+        </set>
+        WHERE video_id = #{videoId}
+    </update>
+
+    <update id="updateByQuery">
+        UPDATE video_info v
+        <set>
+            <if test="videoInfo.videoCover != null">video_cover = #{videoInfo.videoCover},</if>
+            <if test="videoInfo.videoName != null">video_name = #{videoInfo.videoName},</if>
+            <if test="videoInfo.userId != null">user_id = #{videoInfo.userId},</if>
+            <if test="videoInfo.lastUpdateTime != null">last_update_time = #{videoInfo.lastUpdateTime},</if>
+            <if test="videoInfo.pCategoryId != null">p_category_id = #{videoInfo.pCategoryId},</if>
+            <if test="videoInfo.categoryId != null">category_id = #{videoInfo.categoryId},</if>
+            <if test="videoInfo.postType != null">post_type = #{videoInfo.postType},</if>
+            <if test="videoInfo.originInfo != null">origin_info = #{videoInfo.originInfo},</if>
+            <if test="videoInfo.tags != null">tags = #{videoInfo.tags},</if>
+            <if test="videoInfo.introduction != null">introduction = #{videoInfo.introduction},</if>
+            <if test="videoInfo.interaction != null">interaction = #{videoInfo.interaction},</if>
+            <if test="videoInfo.duration != null">duration = #{videoInfo.duration},</if>
+            <if test="videoInfo.playCount != null">play_count = #{videoInfo.playCount},</if>
+            <if test="videoInfo.likeCount != null">like_count = #{videoInfo.likeCount},</if>
+            <if test="videoInfo.danmuCount != null">danmu_count = #{videoInfo.danmuCount},</if>
+            <if test="videoInfo.commentCount != null">comment_count = #{videoInfo.commentCount},</if>
+            <if test="videoInfo.coinCount != null">coin_count = #{videoInfo.coinCount},</if>
+            <if test="videoInfo.collectCount != null">collect_count = #{videoInfo.collectCount},</if>
+            <if test="videoInfo.recommendType != null">recommend_type = #{videoInfo.recommendType},</if>
+            <if test="videoInfo.lastPlayTime != null">last_play_time = #{videoInfo.lastPlayTime},</if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+
+
+    <update id="updateCountInfo">
+        update video_info set ${field} = ${field} + #{changeCount}
+        <if test="field == 'play_count'">
+            , last_play_time = now()
+        </if>
+        where video_id = #{videoId}
+    </update>
+
+
+    <delete id="deleteById" parameterType="String">
+        DELETE FROM video_info WHERE video_id = #{videoId}
+    </delete>
+
+    <select id="selectList" parameterType="com.easybili.entities.query.VideoInfoFilePostQuery" resultType="com.easybili.entities.po.VideoInfoFilePost">
+        SELECT * FROM video_info_file_post
+        WHERE 1=1
+        <if test="videoId != null">AND video_id = #{videoId}</if>
+        <if test="uploadId != null">AND upload_id = #{uploadId}</if>
+        <if test="userId != null">AND user_id = #{userId}</if>
+    </select>
+
+</mapper>

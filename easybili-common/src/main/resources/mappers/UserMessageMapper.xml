@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.UserMessageMapper">
+    <!-- 通用查询条件 -->
+    <sql id="query_condition">
+        <where>
+            <if test="query.userId != null">
+                AND u.user_id = #{query.userId}
+            </if>
+            <if test="query.videoId != null">
+                AND u.video_id = #{query.videoId}
+            </if>
+            <if test="query.messageType != null">
+                AND u.message_type = #{query.messageType}
+            </if>
+            <if test="query.messageId != null">
+                AND u.message_id = #{query.messageId}
+            </if>
+            <if test="query.readType != null">
+                AND u.read_type = #{query.readType}
+            </if>
+
+        </where>
+        <if test="query.orderBy != null">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            LIMIT #{query.simplePage.start}, #{query.simplePage.end}
+        </if>
+    </sql>
+
+    <!-- 基于主键操作 -->
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultType="com.easybili.entities.po.UserMessage">
+        SELECT
+        message_id AS messageId,
+        user_id AS userId,
+        video_id AS videoId,
+        message_type AS messageType,
+        send_user_id AS sendUserId,
+        read_type AS readType,
+        create_time AS createTime,
+        extend_json AS extendJson
+        FROM user_message
+        WHERE message_id = #{messageId}
+    </select>
+
+    <insert id="insert" parameterType="com.easybili.entities.po.UserMessage" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO user_message (
+        user_id, video_id, message_type, send_user_id, read_type, create_time, extend_json
+        ) VALUES (
+        #{userId}, #{videoId}, #{messageType}, #{sendUserId}, #{readType}, #{createTime}, #{extendJson}
+        )
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.easybili.entities.po.UserMessage">
+        UPDATE user_message
+        SET
+        user_id = #{userId},
+        video_id = #{videoId},
+        message_type = #{messageType},
+        send_user_id = #{sendUserId},
+        read_type = #{readType},
+        create_time = #{createTime},
+        extend_json = #{extendJson}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        DELETE FROM user_message WHERE message_id = #{messageId}
+    </delete>
+
+    <!-- 基于索引操作 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultType="com.easybili.entities.po.UserMessage">
+        SELECT
+        message_id AS messageId,
+        user_id AS userId,
+        video_id AS videoId,
+        message_type AS messageType,
+        send_user_id AS sendUserId,
+        read_type AS readType,
+        create_time AS createTime,
+        extend_json AS extendJson
+        FROM user_message
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        DELETE FROM user_message WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 基于 Query 操作 -->
+    <select id="selectByQuery"  resultType="com.easybili.entities.po.UserMessage">
+        SELECT u.*, user.avatar sendUserAvatar, user.user_name sendUserName, v.video_name, v.video_cover
+        from user_message u
+        left join video_info v on u.video_id = v.video_id
+        left join user_info user on user.user_id = u.send_user_id
+        <include refid="query_condition"/>
+
+    </select>
+
+    <select id="selectCount"  resultType="java.lang.Integer">
+        SELECT count(1) from user_message u
+        <include refid="query_condition"/>
+    </select>
+
+    <select id="getMessageTypeNoReadCount" resultType="com.easybili.entities.dto.UserMessageCountDto">
+        select message_type messageType, count(1) messageCount
+        from user_message u
+        where u.user_id = #{userId} and u.read_type = 0
+        group by u.message_type
+    </select>
+
+    <delete id="deleteByQuery">
+        DELETE FROM user_message u
+        <include refid="query_condition"/>
+    </delete>
+
+    <update id="updateByQuery" >
+        UPDATE user_message u
+        <set>
+            <if test="record.userId != null">u.user_id = #{record.userId},</if>
+            <if test="record.videoId != null">u.video_id = #{record.videoId},</if>
+            <if test="record.messageType != null">u.message_type = #{record.messageType},</if>
+            <if test="record.sendUserId != null">u.send_user_id = #{record.sendUserId},</if>
+            <if test="record.readType != null">u.read_type = #{record.readType},</if>
+            <if test="record.createTime != null">u.create_time = #{record.createTime},</if>
+            <if test="record.extendJson != null">u.extend_json = #{record.extendJson}</if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+
+</mapper>

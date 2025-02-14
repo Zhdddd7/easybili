@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.UserVideoSeriesMapper">
+
+    <!-- 通用查询条件 -->
+    <sql id="query_condition">
+        <where>
+            <if test="query.seriesId != null">
+                AND series_id = #{query.seriesId}
+            </if>
+            <if test="query.userId != null">
+                AND user_id = #{query.userId}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 插入数据 -->
+    <insert id="insert" parameterType="com.easybili.entities.po.UserVideoSeries">
+        INSERT INTO user_video_series (series_name, series_description, user_id, sort, update_time)
+        VALUES (#{seriesName}, #{seriesDescription}, #{userId}, #{sort}, #{updateTime})
+    </insert>
+
+    <!-- 删除数据 -->
+    <delete id="deleteById">
+        DELETE FROM user_video_series
+        WHERE series_id = #{seriesId}
+    </delete>
+
+    <!-- 更新数据 -->
+    <update id="updateById">
+        UPDATE user_video_series
+        <set>
+            <if test="seriesName != null">
+                series_name = #{seriesName},
+            </if>
+            <if test="seriesDescription != null">
+                series_description = #{seriesDescription},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+        </set>
+        WHERE series_id = #{seriesId}
+    </update>
+
+    <!-- 查询数据 -->
+    <select id="selectById" resultType="com.easybili.entities.po.UserVideoSeries">
+        SELECT * FROM user_video_series
+        WHERE series_id = #{seriesId}
+    </select>
+
+    <!-- 根据条件查询 -->
+    <select id="selectByQuery" parameterType="com.easybili.entities.query.UserVideoSeriesQuery" resultType="com.easybili.entities.po.UserVideoSeries">
+        SELECT * FROM user_video_series
+        <include refid="query_condition" />
+        <if test="query.orderBy != null">
+            ORDER BY ${query.orderBy}
+        </if>
+        <if test="query.pageNo != null and query.pageSize != null">
+            LIMIT #{query.pageNo}, #{query.pageSize}
+        </if>
+    </select>
+
+    <!-- 根据条件更新 -->
+    <update id="updateByQuery">
+        UPDATE user_video_series
+        <set>
+            <if test="record.seriesName != null">
+                series_name = #{record.seriesName},
+            </if>
+            <if test="record.seriesDescription != null">
+                series_description = #{record.seriesDescription},
+            </if>
+            <if test="record.userId != null">
+                user_id = #{record.userId},
+            </if>
+            <if test="record.sort != null">
+                sort = #{record.sort},
+            </if>
+        </set>
+        <include refid="query_condition" />
+    </update>
+
+    <!-- 根据条件删除 -->
+    <delete id="deleteByQuery">
+        DELETE FROM user_video_series
+        <include refid="query_condition" />
+    </delete>
+</mapper>

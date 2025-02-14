@@ -1,4 +1,4 @@
-package com.easybili.admin.exception;
+package com.easybili.entities.exception;
 
 public class BusinessException extends RuntimeException {
     private Integer code; // 错误码

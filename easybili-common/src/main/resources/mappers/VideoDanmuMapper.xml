@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.easybili.mappers.VideoDanmuMapper">
+    <sql id="query_condition">
+        <where>
+            <if test="query.videoId != null">AND v.video_id = #{query.videoId}</if>
+            <if test="query.fileId != null">AND v.file_id = #{query.fileId}</if>
+            <if test="query.userId != null">AND v.user_id = #{query.userId}</if>
+            <if test="query.mode != null">AND v.mode = #{query.mode}</if>
+            <if test="query.text != null">AND v.text LIKE CONCAT('%', #{query.text}, '%')</if>
+            <if test="query.videoUserId != null and query.videoUserId != ''">
+                AND vd.user_id = #{query.videoUserId}
+            </if>
+            <if test="query.videoNameFuzzy != null and query.videoId != ''">
+                AND vd.video_name like concat('%', #{query.videoNameFuzzy},'%') </if>
+        </where>
+            <if test="query.orderBy != null and query.orderBy != ''">
+                ORDER BY ${query.orderBy}
+            </if>
+            <if test="query.pageNo != null and query.pageSize != null">
+                LIMIT #{query.simplePage.end} OFFSET #{query.simplePage.start}
+            </if>
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.easybili.entities.po.VideoDanmu">
+        INSERT INTO video_danmu (
+        video_id, file_id, user_id, post_time, text, mode, time, color
+        )
+        VALUES (
+        #{videoId}, #{fileId}, #{userId}, #{postTime}, #{text}, #{mode}, #{time}, #{color}
+        )
+    </insert>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.easybili.entities.po.VideoDanmu">
+        UPDATE video_danmu
+        SET video_id = #{videoId},
+        file_id = #{fileId},
+        user_id = #{userId},
+        post_time = #{postTime},
+        text = #{text},
+        mode = #{mode},
+        time = #{time},
+        color = #{color}
+        WHERE danmu_id = #{danmuId}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM video_danmu WHERE danmu_id = #{danmuId}
+    </delete>
+
+    <delete id="deleteByParam">
+        DELETE FROM video_danmu v
+        <include refid="query_condition"/>
+    </delete>
+
+    <!-- 根据 ID 查询 -->
+    <select id="selectById" parameterType="int" resultType="com.easybili.entities.po.VideoDanmu">
+        SELECT * FROM video_danmu WHERE danmu_id = #{danmuId}
+    </select>
+
+    <!-- 根据 Query 条件查询 -->
+    <select id="selectByQuery" parameterType="com.easybili.entities.query.VideoDanmuQuery" resultType="com.easybili.entities.po.VideoDanmu">
+        SELECT v.*
+        <if test="query.queryVideoInfo">
+            , vd.video_name videoName, vd.video_cover videoCover, u.user_name userName
+        </if>
+        FROM video_danmu v
+        <if test="query.queryVideoInfo">
+            join video_info vd on vd.video_id = v.video_id
+            left join user_info u on u.user_id = v.user_id
+        </if>
+        <include refid="query_condition"/>
+    </select>
+
+
+</mapper>
